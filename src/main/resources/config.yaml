@@ -1,0 +1,9 @@
+kumuluzee:
+  name: workout-service
+  version: 1.0.0
+  env:
+    name: dev
+  server:
+    http:
+      port: 8081
+    base-url: http://localhost:8081

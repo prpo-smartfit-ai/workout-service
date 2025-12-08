@@ -7,3 +7,14 @@ kumuluzee:
     http:
       port: 8081
     base-url: http://localhost:8081
+  datasources:
+    - jndi-name: jdbc/WorkoutServiceDS
+      connection-url: jdbc:postgresql://localhost:5432/smartfitai_workouts
+      username: smartfit
+      password: smartfit123
+      max-pool-size: 20
+
+jwt:
+  secret: Wq8U1MgZ9JTQUptfsNWtSuXxKen1Xqvl7TYQ1SwYou2pQnq/RtraU+Rn5OK+ZJVv
+  expiration: 86400000
+  issuer: smartfit-ai

@@ -5,16 +5,16 @@ kumuluzee:
     name: dev
   server:
     http:
-      port: 8081
-    base-url: http://localhost:8081
+      port: ${WORKOUT_SERVICE_PORT:8080}
+    base-url: http://localhost:${WORKOUT_SERVICE_PORT:8080}
   datasources:
     - jndi-name: jdbc/WorkoutServiceDS
-      connection-url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/smartfitai_workouts
-      username: ${DB_USER:postgres}
-      password: ${DB_PASSWORD:postgres}
+      connection-url: jdbc:postgresql://${WORKOUT_DB_HOST:localhost}:${WORKOUT_DB_PORT:5433}/${WORKOUT_DB_NAME:smartfitai_workouts}
+      username: ${WORKOUT_DB_USER:postgres}
+      password: ${WORKOUT_DB_PASSWORD:postgres}
       max-pool-size: 20
 
 jwt:
-  secret: Wq8U1MgZ9JTQUptfsNWtSuXxKen1Xqvl7TYQ1SwYou2pQnq/RtraU+Rn5OK+ZJVv
+  secret: ${JWT_SECRET:Wq8U1MgZ9JTQUptfsNWtSuXxKen1Xqvl7TYQ1SwYou2pQnq/RtraU+Rn5OK+ZJVv}
   expiration: 86400000
-  issuer: smartfit-ai
+  issuer: ${JWT_ISSUER:smartfit-ai}

@@ -12,7 +12,7 @@ FROM eclipse-temurin:17-jre
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/workout-service-1.0.0-SNAPSHOT.jar app.jar
+COPY --from=builder /app/target/workout-service-*.jar app.jar
 
 EXPOSE 8080
 

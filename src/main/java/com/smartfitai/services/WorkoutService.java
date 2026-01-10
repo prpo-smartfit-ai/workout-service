@@ -55,13 +55,31 @@ public class WorkoutService {
         return mapWorkoutPlanToResponse(plan);
     }
 
-    public List<WorkoutPlanResponse> getWorkoutPlans(Long userId) {
+    public List<WorkoutPlanResponse> getWorkoutPlans(Long userId, String difficulty, String sort, String order) {
         try {
-            List<WorkoutPlan> plans = em.createQuery(
-                    "SELECT p FROM WorkoutPlan p WHERE p.userId = :userId ORDER BY p.createdDate DESC",
-                    WorkoutPlan.class)
-                    .setParameter("userId", userId)
-                    .getResultList();
+            StringBuilder jpql = new StringBuilder("SELECT p FROM WorkoutPlan p WHERE p.userId = :userId");
+            if (difficulty != null && !difficulty.isEmpty()) {
+                jpql.append(" AND p.difficulty = :difficulty");
+            }
+            
+            // Basic validation for sort and order to prevent JPQL injection-like issues
+            String sortField = "createdDate";
+            if ("name".equalsIgnoreCase(sort)) sortField = "name";
+            if ("difficulty".equalsIgnoreCase(sort)) sortField = "difficulty";
+            
+            String sortOrder = "DESC";
+            if ("asc".equalsIgnoreCase(order)) sortOrder = "ASC";
+            
+            jpql.append(" ORDER BY p.").append(sortField).append(" ").append(sortOrder);
+            
+            var query = em.createQuery(jpql.toString(), WorkoutPlan.class)
+                    .setParameter("userId", userId);
+            
+            if (difficulty != null && !difficulty.isEmpty()) {
+                query.setParameter("difficulty", difficulty);
+            }
+            
+            List<WorkoutPlan> plans = query.getResultList();
             
             return plans.stream()
                     .map(this::mapWorkoutPlanToResponse)
@@ -69,6 +87,10 @@ public class WorkoutService {
         } catch (Exception e) {
             return new ArrayList<>();
         }
+    }
+
+    public List<WorkoutPlanResponse> getWorkoutPlans(Long userId) {
+        return getWorkoutPlans(userId, null, "createdDate", "desc");
     }
 
     public WorkoutPlanResponse getWorkoutPlanById(Long planId) {
@@ -159,10 +181,16 @@ public class WorkoutService {
         return mapWorkoutSessionToResponse(session);
     }
 
-    public List<SessionResponse> getSessionHistory(Long userId) {
+    public List<SessionResponse> getSessionHistory(Long userId, String sort, String order) {
         try {
+            String sortField = "startDate";
+            if ("endDate".equalsIgnoreCase(sort)) sortField = "endDate";
+            
+            String sortOrder = "DESC";
+            if ("asc".equalsIgnoreCase(order)) sortOrder = "ASC";
+            
             List<WorkoutSession> sessions = em.createQuery(
-                    "SELECT s FROM WorkoutSession s WHERE s.userId = :userId ORDER BY s.createdDate DESC",
+                    "SELECT s FROM WorkoutSession s WHERE s.userId = :userId ORDER BY s." + sortField + " " + sortOrder,
                     WorkoutSession.class)
                     .setParameter("userId", userId)
                     .getResultList();
@@ -173,6 +201,10 @@ public class WorkoutService {
         } catch (Exception e) {
             return new ArrayList<>();
         }
+    }
+
+    public List<SessionResponse> getSessionHistory(Long userId) {
+        return getSessionHistory(userId, "startDate", "desc");
     }
 
     public SessionResponse getSessionById(Long sessionId) {

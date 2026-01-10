@@ -17,8 +17,8 @@ import javax.ws.rs.core.Application;
         description = "API for workout plans, exercise logging, and session tracking in SmartFit AI application."
     ),
     servers = {
-        @Server(url = "http://4.232.72.237/workout-service/v1", description = "Staging Server"),
-        @Server(url = "http://localhost:8082/v1", description = "Local development server")
+        @Server(url = "http://4.232.72.237:8082/", description = "Production server"),
+        @Server(url = "http://localhost:8082/", description = "Local development server")
     }
 )
 public class WorkoutApplication extends Application {

@@ -87,17 +87,19 @@ public class WorkoutResource {
     @GET
     @Path("/plans")
     @Secured
-    @Operation(summary = "Get Workout Plans", description = "Retrieve all workout plans for the current user.")
+    @Operation(summary = "Get Workout Plans", description = "Retrieve all workout plans for the current user with optional filtering and sorting.")
     @APIResponses({
         @APIResponse(responseCode = "200", description = "Plans retrieved successfully"),
         @APIResponse(responseCode = "401", description = "Unauthorized")
     })
-    public Response getWorkoutPlans() {
+    public Response getWorkoutPlans(
+            @QueryParam("difficulty") String difficulty,
+            @QueryParam("sort") @DefaultValue("createdDate") String sort,
+            @QueryParam("order") @DefaultValue("desc") String order) {
         try {
             Long userId = (Long) requestContext.getProperty("userId");
-            List<WorkoutPlanResponse> plans = workoutService.getWorkoutPlans(userId);
+            List<WorkoutPlanResponse> plans = workoutService.getWorkoutPlans(userId, difficulty, sort, order);
             return Response.ok(new ApiResponse<>(plans, "Workout plans retrieved successfully")).build();
-            
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ApiResponse<>(null, "Failed to retrieve workout plans: " + e.getMessage()))
@@ -194,10 +196,17 @@ public class WorkoutResource {
     @GET
     @Path("/sessions")
     @Secured
-    public Response getSessionHistory() {
+    @Operation(summary = "Get Session History", description = "Retrieve session history for the current user with optional sorting.")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "History retrieved successfully"),
+        @APIResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public Response getSessionHistory(
+            @QueryParam("sort") @DefaultValue("startDate") String sort,
+            @QueryParam("order") @DefaultValue("desc") String order) {
         try {
             Long userId = (Long) requestContext.getProperty("userId");
-            List<SessionResponse> sessions = workoutService.getSessionHistory(userId);
+            List<SessionResponse> sessions = workoutService.getSessionHistory(userId, sort, order);
             return Response.ok(new ApiResponse<>(sessions, "Session history retrieved successfully")).build();
             
         } catch (Exception e) {

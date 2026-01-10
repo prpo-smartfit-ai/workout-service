@@ -103,6 +103,29 @@ public class WorkoutResource {
         }
     }
 
+    @DELETE
+    @Path("/plans/{planId}")
+    @Secured
+    public Response deleteWorkoutPlan(@PathParam("planId") Long planId) {
+        try {
+            Long userId = (Long) requestContext.getProperty("userId");
+            boolean deleted = workoutService.deleteWorkoutPlan(planId, userId);
+            
+            if (!deleted) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(new ApiResponse<>(null, "Workout plan not found or you don't have permission to delete it"))
+                        .build();
+            }
+            
+            return Response.ok(new ApiResponse<>(null, "Workout plan deleted successfully")).build();
+            
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ApiResponse<>(null, "Failed to delete workout plan: " + e.getMessage()))
+                    .build();
+        }
+    }
+
     @POST
     @Path("/sessions")
     @Secured
@@ -138,6 +161,21 @@ public class WorkoutResource {
     public Response getSessionHistory() {
         try {
             Long userId = (Long) requestContext.getProperty("userId");
+            List<SessionResponse> sessions = workoutService.getSessionHistory(userId);
+            return Response.ok(new ApiResponse<>(sessions, "Session history retrieved successfully")).build();
+            
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ApiResponse<>(null, "Failed to retrieve session history: " + e.getMessage()))
+                    .build();
+        }
+    }
+
+    @GET
+    @Path("/sessions/user/{userId}")
+    @Secured
+    public Response getSessionHistory(@PathParam("userId") Long userId) {
+        try {
             List<SessionResponse> sessions = workoutService.getSessionHistory(userId);
             return Response.ok(new ApiResponse<>(sessions, "Session history retrieved successfully")).build();
             

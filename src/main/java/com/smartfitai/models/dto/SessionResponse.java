@@ -11,6 +11,8 @@ public class SessionResponse {
     private LocalDateTime endDate;
     private String notes;
     private List<SessionExerciseResponse> sessionExercises;
+    private Integer exercisesCompleted;
+    private Integer totalExercises;
     
     public SessionResponse() {}
     
@@ -61,4 +63,9 @@ public class SessionResponse {
     public void setSessionExercises(List<SessionExerciseResponse> sessionExercises) {
         this.sessionExercises = sessionExercises;
     }
+
+    public Integer getExercisesCompleted() { return exercisesCompleted; }
+    public void setExercisesCompleted(Integer exercisesCompleted) { this.exercisesCompleted = exercisesCompleted; }
+    public Integer getTotalExercises() { return totalExercises; }
+    public void setTotalExercises(Integer totalExercises) { this.totalExercises = totalExercises; }
 }

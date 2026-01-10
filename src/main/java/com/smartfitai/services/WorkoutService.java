@@ -33,6 +33,22 @@ public class WorkoutService {
         plan.setDifficulty(request.getDifficulty());
         plan.setFocusAreas(request.getFocusAreas());
         
+        List<Exercise> exercises = new ArrayList<>();
+        if (request.getExercises() != null) {
+            for (CreateWorkoutPlanRequest.WorkoutPlanExerciseRequest exerciseReq : request.getExercises()) {
+                Exercise exercise = new Exercise();
+                exercise.setName(exerciseReq.getName());
+                exercise.setSets(exerciseReq.getSets() != null ? exerciseReq.getSets() : 0);
+                exercise.setReps(exerciseReq.getReps() != null ? exerciseReq.getReps() : 0);
+                exercise.setDuration(exerciseReq.getDuration());
+                exercise.setInstructions(exerciseReq.getInstructions());
+                exercise.setDifficulty(exerciseReq.getDifficulty() != null ? exerciseReq.getDifficulty() : request.getDifficulty());
+                exercise.setWorkoutPlan(plan);
+                exercises.add(exercise);
+            }
+        }
+        plan.setExercises(exercises);
+        
         em.persist(plan);
         em.flush();
         
@@ -64,6 +80,20 @@ public class WorkoutService {
             return null;
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    @Transactional
+    public boolean deleteWorkoutPlan(Long planId, Long userId) {
+        try {
+            WorkoutPlan plan = em.find(WorkoutPlan.class, planId);
+            if (plan != null && plan.getUserId().equals(userId)) {
+                em.remove(plan);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -191,6 +221,22 @@ public class WorkoutService {
                             .map(this::mapSessionExerciseToResponse)
                             .collect(Collectors.toList())
             );
+            
+            // Calculate exercises completed
+            long completedCount = session.getSessionExercises().stream()
+                    .filter(se -> se.getCompleted() != null && se.getCompleted())
+                    .count();
+            response.setExercisesCompleted((int) completedCount);
+        } else {
+            response.setExercisesCompleted(0);
+        }
+
+        // Try to get total exercises from the plan
+        if (session.getWorkoutPlanId() != null) {
+            WorkoutPlan plan = em.find(WorkoutPlan.class, session.getWorkoutPlanId());
+            if (plan != null && plan.getExercises() != null) {
+                response.setTotalExercises(plan.getExercises().size());
+            }
         }
         
         return response;

@@ -7,6 +7,13 @@ import com.smartfitai.models.dto.SessionResponse;
 import com.smartfitai.models.dto.StartSessionRequest;
 import com.smartfitai.models.dto.WorkoutPlanResponse;
 import com.smartfitai.services.WorkoutService;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -23,6 +30,7 @@ import java.util.Map;
 @Path("/workouts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Workouts", description = "Operations related to workout plans and sessions")
 public class WorkoutResource {
 
     @Inject
@@ -33,6 +41,8 @@ public class WorkoutResource {
 
     @GET
     @Path("/health")
+    @Operation(summary = "Health Check", description = "Check if the workout service is running.")
+    @APIResponse(responseCode = "200", description = "Service is up")
     public Response healthCheck() {
         Map<String, String> health = new HashMap<>();
         health.put("status", "UP");
@@ -43,7 +53,16 @@ public class WorkoutResource {
     @POST
     @Path("/plans")
     @Secured
-    public Response createWorkoutPlan(CreateWorkoutPlanRequest request) {
+    @Operation(summary = "Create Workout Plan", description = "Create a new workout plan for the current user.")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "Workout plan created successfully"),
+        @APIResponse(responseCode = "400", description = "Bad request"),
+        @APIResponse(responseCode = "401", description = "Unauthorized"),
+        @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public Response createWorkoutPlan(@RequestBody(description = "Workout plan details", required = true,
+                                                 content = @Content(schema = @Schema(implementation = CreateWorkoutPlanRequest.class)))
+                                      CreateWorkoutPlanRequest request) {
         try {
             Long userId = (Long) requestContext.getProperty("userId");
             
@@ -68,6 +87,11 @@ public class WorkoutResource {
     @GET
     @Path("/plans")
     @Secured
+    @Operation(summary = "Get Workout Plans", description = "Retrieve all workout plans for the current user.")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Plans retrieved successfully"),
+        @APIResponse(responseCode = "401", description = "Unauthorized")
+    })
     public Response getWorkoutPlans() {
         try {
             Long userId = (Long) requestContext.getProperty("userId");
@@ -84,6 +108,11 @@ public class WorkoutResource {
     @GET
     @Path("/plans/{planId}")
     @Secured
+    @Operation(summary = "Get Workout Plan", description = "Retrieve a specific workout plan by ID.")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Plan retrieved successfully"),
+        @APIResponse(responseCode = "404", description = "Plan not found")
+    })
     public Response getWorkoutPlan(@PathParam("planId") Long planId) {
         try {
             WorkoutPlanResponse plan = workoutService.getWorkoutPlanById(planId);
@@ -129,7 +158,14 @@ public class WorkoutResource {
     @POST
     @Path("/sessions")
     @Secured
-    public Response startSession(StartSessionRequest request) {
+    @Operation(summary = "Start Workout Session", description = "Start a new workout session from a plan.")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "Session started"),
+        @APIResponse(responseCode = "404", description = "Plan not found")
+    })
+    public Response startSession(@RequestBody(description = "Session start details", required = true,
+                                             content = @Content(schema = @Schema(implementation = StartSessionRequest.class)))
+                                 StartSessionRequest request) {
         try {
             Long userId = (Long) requestContext.getProperty("userId");
             
@@ -173,8 +209,8 @@ public class WorkoutResource {
 
     @GET
     @Path("/sessions/user/{userId}")
-    @Secured
-    public Response getSessionHistory(@PathParam("userId") Long userId) {
+    @Secured    @Operation(summary = "Get Session History", description = "Retrieve session history for a specific user.")
+    @APIResponse(responseCode = "200", description = "History retrieved successfully")    public Response getSessionHistory(@PathParam("userId") Long userId) {
         try {
             List<SessionResponse> sessions = workoutService.getSessionHistory(userId);
             return Response.ok(new ApiResponse<>(sessions, "Session history retrieved successfully")).build();
@@ -189,6 +225,11 @@ public class WorkoutResource {
     @GET
     @Path("/sessions/{sessionId}")
     @Secured
+    @Operation(summary = "Get Session Details", description = "Retrieve details for a specific session.")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Session retrieved successfully"),
+        @APIResponse(responseCode = "404", description = "Session not found")
+    })
     public Response getSession(@PathParam("sessionId") Long sessionId) {
         try {
             SessionResponse session = workoutService.getSessionById(sessionId);
@@ -211,7 +252,16 @@ public class WorkoutResource {
     @POST
     @Path("/sessions/{sessionId}/exercises")
     @Secured
-    public Response logExerciseCompletion(@PathParam("sessionId") Long sessionId, LogExerciseRequest request) {
+    @Operation(summary = "Log Exercise Completion", description = "Log sets and reps for an exercise in a session.")
+    @APIResponses({
+        @APIResponse(responseCode = "201", description = "Exercise completion logged successfully"),
+        @APIResponse(responseCode = "400", description = "Bad request"),
+        @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public Response logExerciseCompletion(@PathParam("sessionId") Long sessionId, 
+                                          @RequestBody(description = "Exercise log details", required = true,
+                                                    content = @Content(schema = @Schema(implementation = LogExerciseRequest.class)))
+                                          LogExerciseRequest request) {
         try {
             if (request.getExerciseId() == null) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -245,7 +295,16 @@ public class WorkoutResource {
     @PUT
     @Path("/sessions/{sessionId}/end")
     @Secured
-    public Response endSession(@PathParam("sessionId") Long sessionId, EndSessionRequest request) {
+    @Operation(summary = "End Workout Session", description = "Mark a session as completed.")
+    @APIResponses({
+        @APIResponse(responseCode = "200", description = "Session ended successfully"),
+        @APIResponse(responseCode = "400", description = "Bad request"),
+        @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public Response endSession(@PathParam("sessionId") Long sessionId, 
+                               @RequestBody(description = "Session end details", required = true,
+                                         content = @Content(schema = @Schema(implementation = EndSessionRequest.class)))
+                               EndSessionRequest request) {
         try {
             SessionResponse session = workoutService.endSession(sessionId, request.getNotes());
             

@@ -29,7 +29,9 @@ Storitev bo dostopna na `http://localhost:8081`
 ## API
 
 - `GET /v1/workouts/health` - Preverjanje stanja storitve
-- `GET /v1/workouts` - Informacije o storitvi
+- `GET /v1/workouts/plans` - Pridobitev vseh vadbenih načrtov (zahteva JWT)
+- `POST /v1/workouts/plans` - Ustvarjanje novega vadbenega načrta (zahteva JWT)
+- `GET /v1/workouts/sessions` - Pridobitev zgodovine vadb (zahteva JWT)
 
 ## Povezani repozitoriji
 
